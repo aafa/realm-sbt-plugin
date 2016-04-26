@@ -19,6 +19,8 @@ object RealmProcessing {
   lazy val realmTransformer: TaskKey[Unit] = TaskKey[Unit]("realm-transform", "realm transform")
 
   val tasks = Seq(
+    RealmPlugin.ignoreClassProcessing := Seq(),
+
     realmProcessAnnotations <<= Def.task {
       val classDir = (classDirectory in Compile).value
       val classpath = ((products in Compile).value ++ (bootClasspath in Android).value.files ++ (dependencyClasspath in Compile).value.files) mkString ":"
@@ -26,10 +28,16 @@ object RealmProcessing {
       val classes: Stream[File] = getFileTree(classDir).filter(_.name.endsWith(".class"))
       val className: (File) => String = _.getAbsolutePath.replace(classDir.absolutePath + "/", "").replace(".class", "").replace("/", ".")
       val internalClass: (String) => Boolean = _.contains("$")
-      val realmArtifacts: (String) => Boolean = _.contains("io.realm") // that was previously created
-      val filesList: String = classes.map(className).filterNot(internalClass).filterNot(realmArtifacts) mkString " "
+      val realmArtifacts: (String) => Boolean = _.contains("io.realm") // they were created before
+
+      // todo get actual class names!
+      val filesList: String = classes.map(className)
+        .filterNot(internalClass)
+        .filterNot(realmArtifacts)
+        .filterNot(RealmPlugin.ignoreClassProcessing.value.contains) mkString " "
 
       val command = s"javac -source 1.7 -target 1.7 -classpath $classpath -processor io.realm.processor.RealmProcessor -XprintRounds -d $classDir $filesList"
+      println(s"running $command")
       val result: Int = Process(command).!
       assert(result == 0, "`javac -processor` should be successful")
     },

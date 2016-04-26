@@ -11,12 +11,14 @@ object RealmPlugin extends AutoPlugin {
 
   override def projectSettings: Seq[Setting[_]] = RealmProcessing.tasks ++ realmBuildSettings ++ realmDependency
 
-  val realmBuildSettings = Seq(
+  lazy val ignoreClassProcessing: TaskKey[Seq[String]] = TaskKey[Seq[String]]("classes to ignore in `javac -processor`")
+
+  private val realmBuildSettings = Seq(
     (packageBin in Compile) <<= (packageBin in Compile) dependsOn RealmProcessing.realmTransformer
   )
 
   // keep it here up until 0.88 is released
-  val realmDependency = Seq(
+  private val realmDependency = Seq(
     resolvers ++= Seq(
       "ReLinker" at "https://jitpack.io",
       "oss" at "http://oss.jfrog.org/artifactory/oss-snapshot-local"
