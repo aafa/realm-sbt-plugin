@@ -1,5 +1,7 @@
 # SBT plugin for Realm.io 
 
+### Notice! This is proof-of-concept only, I don't have any plans at this moment to continue working on this project.
+
 This plugin will let you work with [Realm DB](https://realm.io/) for Android from scala code running with [android-sdk-plugin](https://github.com/pfn/android-sdk-plugin)
 
 
